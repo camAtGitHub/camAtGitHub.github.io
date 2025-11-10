@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberChef - The Cyber Swiss Army Knife</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: #000;
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+            position: relative;
+        }
+        
+        /* Particle Canvas */
+        #particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        /* Main Container */
+        .container {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100%;
+            padding: 20px;
+            overflow: hidden;
+        }
+        
+        /* Title Section */
+        .title-container {
+            position: relative;
+            text-align: center;
+            margin-bottom: clamp(10px, 3vh, 30px);
+            transition: all 0.3s ease;
+        }
+        
+        .main-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(2rem, 8vw, 5rem);
+            font-weight: 900;
+            letter-spacing: 0.1em;
+            background: linear-gradient(45deg, #00ffff, #ff00ff, #ffff00);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            position: relative;
+            animation: pulse 2s infinite alternate;
+            line-height: 1;
+        }
+        
+        @keyframes pulse {
+            0% { filter: drop-shadow(0 0 10px rgba(0, 255, 255, 0.7)); }
+            100% { filter: drop-shadow(0 0 20px rgba(255, 0, 255, 0.7)); }
+        }
+        
+        .subtitle {
+            font-size: clamp(0.9rem, 2.5vw, 1.5rem);
+            margin-top: clamp(5px, 1vh, 10px);
+            letter-spacing: 0.2em;
+            color: #aaa;
+            animation: fadeIn 2s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Content Layout - Flexbox for better height management */
+        .content-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            width: 100%;
+            max-width: 1200px;
+            gap: clamp(15px, 3vh, 30px);
+        }
+        
+        /* Countdown Timer - Responsive sizing */
+        .countdown-container {
+            position: relative;
+            width: clamp(120px, 25vw, 250px);
+            height: clamp(120px, 25vw, 250px);
+            flex-shrink: 0;
+        }
+        
+        .countdown-circle {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(
+                from 0deg,
+                rgba(0, 255, 255, 0.8) 0deg,
+                rgba(255, 0, 255, 0.8) 120deg,
+                rgba(255, 255, 0, 0.8) 240deg,
+                rgba(0, 255, 255, 0.8) 360deg
+            );
+            animation: rotate 10s linear infinite;
+            filter: blur(5px);
+            opacity: 0.7;
+        }
+        
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .countdown-inner {
+            position: absolute;
+            top: 8%;
+            left: 8%;
+            right: 8%;
+            bottom: 8%;
+            border-radius: 50%;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        
+        .countdown-number {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(2rem, 6vw, 4rem);
+            font-weight: 700;
+            color: #fff;
+            transition: all 0.3s ease;
+        }
+        
+        .countdown-text {
+            font-size: clamp(0.6rem, 1.5vw, 0.9rem);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #aaa;
+            text-align: center;
+            padding: 0 5px;
+        }
+        
+        /* Action Buttons - Responsive layout */
+        .actions-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: clamp(10px, 2vw, 20px);
+            margin-top: clamp(10px, 2vh, 20px);
+            width: 100%;
+            max-width: 500px;
+        }
+        
+        .action-btn {
+            position: relative;
+            padding: clamp(10px, 2vh, 15px) clamp(20px, 4vw, 40px);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: clamp(0.9rem, 2vw, 1.2rem);
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            text-decoration: none;
+            color: #fff;
+            background: linear-gradient(45deg, rgba(0, 255, 255, 0.2), rgba(255, 0, 255, 0.2));
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            flex: 1;
+            min-width: 200px;
+            text-align: center;
+        }
+        
+        .action-btn:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, rgba(0, 255, 255, 0.5), rgba(255, 0, 255, 0.5));
+            transition: left 0.5s ease;
+            z-index: -1;
+        }
+        
+        .action-btn:hover:before {
+            left: 0;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 255, 255, 0.3);
+        }
+        
+        .action-btn span {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .action-btn .version {
+            font-size: clamp(0.6rem, 1.5vw, 0.8rem);
+            opacity: 0.7;
+            display: block;
+            margin-top: 3px;
+        }
+        
+        /* Cursor Trail */
+        .cursor-trail {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            mix-blend-mode: screen;
+        }
+        
+        /* Floating Elements - Responsive positioning */
+        .floating-element {
+            position: absolute;
+            opacity: 0.3;
+            z-index: 5;
+        }
+        
+        .hexagon {
+            width: clamp(30px, 4vw, 60px);
+            height: clamp(17px, 2.3vw, 34.64px);
+            background-color: rgba(0, 255, 255, 0.3);
+            position: relative;
+            margin: clamp(8px, 1.1vw, 17.32px) 0;
+        }
+        
+        .hexagon:before,
+        .hexagon:after {
+            content: "";
+            position: absolute;
+            width: 0;
+            border-left: clamp(15px, 2vw, 30px) solid transparent;
+            border-right: clamp(15px, 2vw, 30px) solid transparent;
+        }
+        
+        .hexagon:before {
+            bottom: 100%;
+            border-bottom: clamp(8px, 1.1vw, 17.32px) solid rgba(0, 255, 255, 0.3);
+        }
+        
+        .hexagon:after {
+            top: 100%;
+            border-top: clamp(8px, 1.1vw, 17.32px) solid rgba(0, 255, 255, 0.3);
+        }
+        
+        /* Notification - Responsive positioning */
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: clamp(10px, 2vh, 15px) clamp(15px, 3vw, 25px);
+            background: rgba(0, 0, 0, 0.7);
+            border-left: 4px solid #00ffff;
+            border-radius: 5px;
+            z-index: 100;
+            transform: translateX(120%);
+            transition: transform 0.5s ease;
+            max-width: 90%;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        /* Compact Mode for very small heights */
+        @media (max-height: 500px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .content-wrapper {
+                gap: 10px;
+            }
+            
+            .title-container {
+                margin-bottom: 5px;
+            }
+            
+            .actions-container {
+                margin-top: 5px;
+            }
+            
+            .countdown-text {
+                display: none;
+            }
+        }
+        
+        /* Ultra Compact Mode for extremely small heights */
+        @media (max-height: 400px) {
+            .subtitle {
+                display: none;
+            }
+            
+            .countdown-container {
+                width: clamp(80px, 20vw, 150px);
+                height: clamp(80px, 20vw, 150px);
+            }
+            
+            .action-btn .version {
+                display: none;
+            }
+        }
+        
+        /* Mobile adjustments */
+        @media (max-width: 768px) {
+            .actions-container {
+                flex-direction: column;
+                width: 100%;
+                max-width: 300px;
+            }
+            
+            .action-btn {
+                width: 100%;
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Particle Canvas -->
+    <canvas id="particle-canvas"></canvas>
+    
+    <!-- Floating Elements -->
+    <div class="floating-element hexagon" style="top: 10%; left: 5%;"></div>
+    <div class="floating-element hexagon" style="top: 70%; left: 8%;"></div>
+    <div class="floating-element hexagon" style="top: 30%; right: 7%;"></div>
+    <div class="floating-element hexagon" style="top: 80%; right: 10%;"></div>
+    
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Title -->
+        <div class="title-container">
+            <h1 class="main-title">CYBERCHEF</h1>
+            <p class="subtitle">The Cyber Swiss Army Knife</p>
+        </div>
+        
+        <!-- Content Wrapper for better height management -->
+        <div class="content-wrapper">
+            <!-- Countdown Timer -->
+            <div class="countdown-container">
+                <div class="countdown-circle"></div>
+                <div class="countdown-inner">
+                    <div class="countdown-number" id="countdown">15</div>
+                    <div class="countdown-text">seconds until redirect</div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="actions-container">
+                <a href="/CyberChef" class="action-btn" id="online-btn">
+                    <span>
+                        CyberChef Online
+                        <span class="version">Build v10.19.5-2a1294f</span>
+                    </span>
+                </a>
+                
+                <a href="https://raw.githubusercontent.com/camAtGitHub/camAtGitHub.github.io/refs/heads/github-pages/CyberChef_v10.19.5-2a1294f.zip" class="action-btn" id="offline-btn">
+                    <span>
+                        CyberChef Offline
+                        <span class="version">Build v10.19.5-2a1294f</span>
+                    </span>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        You'll be redirected to CyberChef in <span id="notification-countdown">15</span> seconds
+    </div>
+    
+    <!-- JavaScript -->
+    <script>
+        // Viewport height detection and dynamic adjustments
+        function adjustForViewportHeight() {
+            const vh = window.innerHeight;
+            const vw = window.innerWidth;
+            const isCompact = vh < 500;
+            const isUltraCompact = vh < 400;
+            
+            // Adjust particle count based on viewport size
+            const particleCount = isUltraCompact ? 30 : (isCompact ? 50 : 100);
+            
+            // Adjust floating elements animation speed
+            const floatingElements = document.querySelectorAll('.floating-element');
+            floatingElements.forEach(element => {
+                element.style.animationDuration = isUltraCompact ? '20s' : '10s';
+            });
+            
+            return { isCompact, isUltraCompact, particleCount };
+        }
+        
+        // Initialize viewport adjustments
+        const viewport = adjustForViewportHeight();
+        window.addEventListener('resize', adjustForViewportHeight);
+        
+        // Countdown Timer
+        let countdown = 15;
+        const countdownEl = document.getElementById('countdown');
+        const notificationEl = document.getElementById('notification');
+        const notificationCountdownEl = document.getElementById('notification-countdown');
+        
+        // Show notification after 2 seconds
+        setTimeout(() => {
+            notificationEl.classList.add('show');
+        }, 2000);
+        
+        // Update countdown
+        const countdownInterval = setInterval(() => {
+            countdown--;
+            countdownEl.textContent = countdown;
+            notificationCountdownEl.textContent = countdown;
+            
+            // Add pulse effect when countdown is low
+            if (countdown <= 5) {
+                countdownEl.style.color = '#ff3366';
+                countdownEl.style.transform = 'scale(1.2)';
+            }
+            
+            if (countdown <= 0) {
+                clearInterval(countdownInterval);
+                window.location.href = '/CyberChef';
+            }
+        }, 1000);
+        
+        // Cancel redirect if buttons are clicked
+        document.getElementById('online-btn').addEventListener('click', () => {
+            clearInterval(countdownInterval);
+            notificationEl.textContent = 'Redirecting to CyberChef Online...';
+        });
+        
+        document.getElementById('offline-btn').addEventListener('click', () => {
+            clearInterval(countdownInterval);
+            notificationEl.textContent = 'Download started for CyberChef Offline Version';
+        });
+        
+        // Particle System
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Set canvas size
+        function setCanvasSize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        
+        setCanvasSize();
+        window.addEventListener('resize', setCanvasSize);
+        
+        // Particle class
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 3 + 1;
+                this.speedX = Math.random() * 2 - 1;
+                this.speedY = Math.random() * 2 - 1;
+                this.color = `hsl(${Math.random() * 60 + 160}, 100%, 50%)`; // Cyan to purple range
+                this.life = Math.random() * 100 + 100;
+            }
+            
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.life--;
+                
+                if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+            }
+            
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.life / 100;
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+        
+        // Create particles
+        const particles = [];
+        for (let i = 0; i < viewport.particleCount; i++) {
+            particles.push(new Particle());
+        }
+        
+        // Connect particles with lines
+        function connectParticles() {
+            const maxDistance = viewport.isUltraCompact ? 50 : 100;
+            
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < maxDistance) {
+                        ctx.save();
+                        ctx.globalAlpha = (1 - distance / maxDistance) * 0.5;
+                        ctx.strokeStyle = '#ffffff';
+                        ctx.lineWidth = 0.5;
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                        ctx.restore();
+                    }
+                }
+            }
+        }
+        
+        // Mouse interaction
+        let mouseX = 0;
+        let mouseY = 0;
+        
+        canvas.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            
+            // Add new particles at mouse position
+            const particleCount = viewport.isUltraCompact ? 1 : 3;
+            for (let i = 0; i < particleCount; i++) {
+                const particle = new Particle();
+                particle.x = mouseX;
+                particle.y = mouseY;
+                particle.speedX = Math.random() * 6 - 3;
+                particle.speedY = Math.random() * 6 - 3;
+                particles.push(particle);
+                
+                // Remove oldest particles if too many
+                const maxParticles = viewport.isUltraCompact ? 100 : 200;
+                if (particles.length > maxParticles) {
+                    particles.shift();
+                }
+            }
+        });
+        
+        // Cursor trail
+        const cursorTrailElements = [];
+        const trailLength = viewport.isUltraCompact ? 5 : 10;
+        
+        for (let i = 0; i < trailLength; i++) {
+            const trail = document.createElement('div');
+            trail.classList.add('cursor-trail');
+            trail.style.backgroundColor = `hsl(${Math.random() * 60 + 160}, 100%, 50%)`;
+            trail.style.width = `${20 - i * 1.5}px`;
+            trail.style.height = `${20 - i * 1.5}px`;
+            document.body.appendChild(trail);
+            cursorTrailElements.push(trail);
+        }
+        
+        document.addEventListener('mousemove', (e) => {
+            cursorTrailElements.forEach((trail, index) => {
+                setTimeout(() => {
+                    trail.style.left = `${e.clientX - (10 - index * 0.75)}px`;
+                    trail.style.top = `${e.clientY - (10 - index * 0.75)}px`;
+                }, index * 10);
+            });
+        });
+        
+        // Animation loop
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Update and draw particles
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+                
+                // Remove dead particles
+                if (particles[i].life <= 0) {
+                    particles.splice(i, 1);
+                    i--;
+                    
+                    // Add new particle
+                    particles.push(new Particle());
+                }
+            }
+            
+            connectParticles();
+            requestAnimationFrame(animate);
+        }
+        
+        animate();
+        
+        // Animate floating elements
+        const floatingElements = document.querySelectorAll('.floating-element');
+        
+        floatingElements.forEach((element, index) => {
+            const speed = 0.5 + Math.random() * 1;
+            const direction = Math.random() > 0.5 ? 1 : -1;
+            const maxTop = viewport.isUltraCompact ? 90 : 85;
+            const minTop = viewport.isUltraCompact ? 5 : 10;
+            
+            function animateFloating() {
+                const currentTop = parseFloat(element.style.top);
+                const newTop = currentTop + (speed * direction);
+                
+                if (newTop > maxTop || newTop < minTop) {
+                    element.style.top = `${direction > 0 ? minTop : maxTop}%`;
+                } else {
+                    element.style.top = `${newTop}%`;
+                }
+                
+                requestAnimationFrame(animateFloating);
+            }
+            
+            setTimeout(() => animateFloating(), index * 500);
+        });
+    </script>
+</body>
+</html>
