@@ -1,0 +1,198 @@
+:root {
+    --primary-glow: #00ffff;
+    --secondary-glow: #ff00ff;
+    --background-color: #03000a;
+    --text-color: #e0e0e0;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-family: 'Roboto Mono', monospace;
+    overflow: hidden;
+    cursor: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    text-align: center;
+}
+
+#particle-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+}
+
+.content-wrapper {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 3s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.glitch {
+    font-size: 5rem;
+    font-weight: 400;
+    text-transform: uppercase;
+    position: relative;
+    color: var(--text-color);
+    text-shadow: 0 0 5px var(--primary-glow), 0 0 10px var(--primary-glow);
+    margin: 0;
+    animation: glitch-anim 5s infinite alternate-reverse;
+}
+
+.glitch:before,
+.glitch:after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--background-color);
+    overflow: hidden;
+    clip: rect(0, 900px, 0, 0);
+}
+
+.glitch:before {
+    left: 2px;
+    text-shadow: -2px 0 var(--secondary-glow);
+    animation: glitch-anim-2 3s infinite linear alternate-reverse;
+}
+
+.glitch:after {
+    left: -2px;
+    text-shadow: -2px 0 var(--primary-glow), 2px 2px var(--secondary-glow);
+    animation: glitch-anim-3 4s infinite linear alternate-reverse;
+}
+
+@keyframes glitch-anim {
+    0% { transform: skewX(0deg); }
+    10% { transform: skewX(5deg); }
+    20% { transform: skewX(0deg); }
+    30% { transform: skewX(-5deg); }
+    40% { transform: skewX(0deg); }
+    100% { transform: skewX(0deg); }
+}
+
+@keyframes glitch-anim-2 {
+    0% { clip: rect(42px, 9999px, 44px, 0); }
+    25% { clip: rect(12px, 9999px, 59px, 0); }
+    50% { clip: rect(35px, 9999px, 73px, 0); }
+    75% { clip: rect(82px, 9999px, 2px, 0); }
+    100% { clip: rect(42px, 9999px, 44px, 0); }
+}
+
+@keyframes glitch-anim-3 {
+     0% { clip: rect(79px, 9999px, 86px, 0); }
+    25% { clip: rect(23px, 9999px, 99px, 0); }
+    50% { clip: rect(50px, 9999px, 1px, 0); }
+    75% { clip: rect(10px, 9999px, 45px, 0); }
+    100% { clip: rect(79px, 9999px, 86px, 0); }
+}
+
+.links-container {
+    margin-top: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.decode-link {
+    color: var(--text-color);
+    text-decoration: none;
+    font-size: 1.2rem;
+    position: relative;
+    overflow: hidden;
+    padding: 10px;
+    transition: color 0.4s ease;
+}
+
+.decode-link:hover {
+    color: var(--primary-glow);
+    text-shadow: 0 0 10px var(--primary-glow);
+}
+
+.decode-link::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: -100%;
+    width: 100%;
+    height: 2px;
+    background: var(--primary-glow);
+    transition: left 0.4s ease;
+}
+
+.decode-link:hover::before {
+    left: 0;
+}
+
+.redirect-timer {
+    margin-top: 3rem;
+    position: relative;
+    width: 100px;
+    height: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.timer-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.timer-background {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.1);
+    stroke-width: 4;
+}
+
+.timer-progress {
+    fill: none;
+    stroke: var(--primary-glow);
+    stroke-width: 4;
+    stroke-dasharray: 283; /* 2 * PI * 45 */
+    stroke-dashoffset: 283;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s linear;
+}
+
+#countdown-text {
+    font-size: 2rem;
+    color: var(--text-color);
+}
+
+.redirect-notice {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.5);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.5; }
+    50% { opacity: 1; }
+    100% { opacity: 0.5; }
+}
